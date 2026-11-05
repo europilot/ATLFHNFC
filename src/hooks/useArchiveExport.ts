@@ -26,7 +26,7 @@ export function useArchiveExport() {
 
   const download = useCallback(
     async (page: AtlPage) => {
-      setState(page.id, { status: "working", message: "Préparation du PDF..." });
+      setState(page.id, { status: "working", message: "Génération du PDF en cours..." });
       try {
         const pdf = await buildAtlPdf(page);
         const url = URL.createObjectURL(pdf);
@@ -47,7 +47,7 @@ export function useArchiveExport() {
 
   const sendToDrive = useCallback(
     async (page: AtlPage) => {
-      setState(page.id, { status: "working", message: "Préparation du PDF..." });
+      setState(page.id, { status: "working", message: "Génération du PDF en cours..." });
       try {
         const pdf = await buildAtlPdf(page);
         setState(page.id, { status: "working", message: "Envoi vers Google Drive..." });

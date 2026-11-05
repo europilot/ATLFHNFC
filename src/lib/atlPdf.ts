@@ -10,6 +10,8 @@ const PAGE_WIDTH_MM = 297;
 const PAGE_HEIGHT_MM = 210;
 const PAGE_MARGIN_MM = 6;
 const CAPTURE_SCALE = 2;
+const MAX_CANVAS_EDGE_PX = 4096;
+const MAX_CANVAS_AREA_PX = 4096 * 4096;
 
 export function atlFileName(page: AtlPage): string {
   return `ATL - ${page.pageNumber}`;
@@ -48,8 +50,15 @@ async function captureAtlPage(page: AtlPage): Promise<HTMLCanvasElement> {
     });
     await nextFrame();
     const target = host.firstElementChild as HTMLElement;
+    const { width, height } = target.getBoundingClientRect();
+    const scale = Math.min(
+      CAPTURE_SCALE,
+      MAX_CANVAS_EDGE_PX / width,
+      MAX_CANVAS_EDGE_PX / height,
+      Math.sqrt(MAX_CANVAS_AREA_PX / (width * height)),
+    );
     return await html2canvas(target, {
-      scale: CAPTURE_SCALE,
+      scale,
       backgroundColor: "#ffffff",
       windowWidth: target.scrollWidth,
       onclone: freezeFormFields,
