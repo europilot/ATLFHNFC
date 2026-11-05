@@ -40,7 +40,7 @@ function freezeFormFields(doc: Document) {
 
 async function captureAtlPage(page: AtlPage): Promise<HTMLCanvasElement> {
   const host = document.createElement("div");
-  host.style.cssText = "position:fixed;left:-100000px;top:0;background:#ffffff;";
+  host.style.cssText = "position:absolute;left:-9999px;top:0;background:#ffffff;";
   document.body.appendChild(host);
   const root = createRoot(host);
 
@@ -49,6 +49,7 @@ async function captureAtlPage(page: AtlPage): Promise<HTMLCanvasElement> {
       root.render(createElement(AtlDocument, { page, readOnly: true, onChange: () => undefined }));
     });
     await nextFrame();
+    await document.fonts.ready;
     const target = host.firstElementChild as HTMLElement;
     const { width, height } = target.getBoundingClientRect();
     const scale = Math.min(
@@ -57,16 +58,34 @@ async function captureAtlPage(page: AtlPage): Promise<HTMLCanvasElement> {
       MAX_CANVAS_EDGE_PX / height,
       Math.sqrt(MAX_CANVAS_AREA_PX / (width * height)),
     );
-    return await html2canvas(target, {
+    const canvas = await html2canvas(target, {
       scale,
+      useCORS: true,
       backgroundColor: "#ffffff",
+      logging: false,
       windowWidth: target.scrollWidth,
       onclone: freezeFormFields,
     });
+    if (isBlankCanvas(canvas)) throw new Error("Le rendu du carnet est vide. Veuillez réessayer.");
+    return canvas;
   } finally {
     root.unmount();
     host.remove();
   }
+}
+
+function isBlankCanvas(canvas: HTMLCanvasElement): boolean {
+  const sample = document.createElement("canvas");
+  sample.width = 160;
+  sample.height = Math.max(1, Math.round((160 * canvas.height) / canvas.width));
+  const ctx = sample.getContext("2d");
+  if (!ctx) return false;
+  ctx.drawImage(canvas, 0, 0, sample.width, sample.height);
+  const data = ctx.getImageData(0, 0, sample.width, sample.height).data;
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i] < 245 || data[i + 1] < 245 || data[i + 2] < 245) return false;
+  }
+  return true;
 }
 
 export async function buildAtlPdf(page: AtlPage): Promise<Blob> {
