@@ -1,7 +1,17 @@
-import { ChevronRight, Clock, Download, Loader2, Plane, Trash2, CloudUpload, ExternalLink } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  CloudUpload,
+  Download,
+  ExternalLink,
+  Loader2,
+  Plane,
+  Trash2,
+} from "lucide-react";
 import { useState } from "react";
 import { formatNum, pageTotals } from "@/lib/atlCalc";
-import { isGoogleDriveConfigured } from "@/lib/googleDrive";
+import { isGoogleDriveConfigured, isGoogleDriveConnected } from "@/lib/googleDrive";
 import type { ExportState } from "@/hooks/useArchiveExport";
 import type { AtlPage } from "@/types/atl";
 
@@ -39,11 +49,20 @@ export function AtlArchiveCard({
   onSendToDrive,
 }: AtlArchiveCardProps) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const totals = pageTotals(page);
   const busy = exportState?.status === "working";
+  const driveLabel = isGoogleDriveConnected()
+    ? "Envoyer vers Google Drive"
+    : "Se connecter à Google Drive et envoyer";
+
+  const chooseDestination = (action: () => void) => {
+    setMenuOpen(false);
+    action();
+  };
 
   return (
-    <li className="relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 transition-shadow hover:shadow-md">
+    <li className="relative flex flex-col rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 transition-shadow hover:shadow-md">
       <button
         type="button"
         onClick={onOpen}
@@ -87,25 +106,49 @@ export function AtlArchiveCard({
       </button>
 
       <div className="flex flex-col gap-2 border-t border-slate-100 px-5 py-3">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="relative">
           <button
             type="button"
-            onClick={onDownload}
+            onClick={() => setMenuOpen((open) => !open)}
             disabled={busy}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <Download className="size-4" />
-            Télécharger le PDF
-          </button>
-          <button
-            type="button"
-            onClick={onSendToDrive}
-            disabled={busy}
+            aria-expanded={menuOpen}
             className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <CloudUpload className="size-4" />
-            Exporter vers Google Drive
+            <Download className="size-4" />
+            Exporter le PDF
+            <ChevronDown className={`size-4 transition-transform ${menuOpen ? "rotate-180" : ""}`} />
           </button>
+
+          {menuOpen && (
+            <>
+              <div className="fixed inset-0 z-20" onClick={() => setMenuOpen(false)} />
+              <div className="absolute left-0 top-full z-30 mt-2 w-72 overflow-hidden rounded-xl bg-white p-1 shadow-lg ring-1 ring-slate-200">
+                <button
+                  type="button"
+                  onClick={() => chooseDestination(onDownload)}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-800 transition-colors hover:bg-slate-100"
+                >
+                  <Download className="size-4 text-slate-600" />
+                  <span>
+                    <span className="block font-semibold">Télécharger sur mon appareil</span>
+                    <span className="block text-xs text-slate-500">Enregistre le PDF dans vos téléchargements</span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => chooseDestination(onSendToDrive)}
+                  disabled={!isGoogleDriveConfigured()}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-800 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <CloudUpload className="size-4 text-blue-700" />
+                  <span>
+                    <span className="block font-semibold">{driveLabel}</span>
+                    <span className="block text-xs text-slate-500">Dossier « Aircraft Technical Logs »</span>
+                  </span>
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         {exportState && (

@@ -9,7 +9,7 @@ import type { AtlPage } from "@/types/atl";
 const PAGE_WIDTH_MM = 297;
 const PAGE_HEIGHT_MM = 210;
 const PAGE_MARGIN_MM = 6;
-const CAPTURE_SCALE = 2;
+const CAPTURE_SCALE = 1.5;
 const MAX_CANVAS_EDGE_PX = 4096;
 const MAX_CANVAS_AREA_PX = 4096 * 4096;
 

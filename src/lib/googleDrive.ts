@@ -27,6 +27,10 @@ export function isGoogleDriveConfigured(): boolean {
   return CLIENT_ID !== undefined;
 }
 
+export function isGoogleDriveConnected(): boolean {
+  return cachedToken !== null && cachedToken.expiresAt > Date.now() + 60_000;
+}
+
 function getGoogle(): GoogleAccounts | undefined {
   return (window as unknown as { google?: GoogleAccounts }).google;
 }
