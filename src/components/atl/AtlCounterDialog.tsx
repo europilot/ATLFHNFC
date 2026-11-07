@@ -5,7 +5,7 @@ import { sanitizeDecimal, validateFlightCounter } from "@/lib/atlInputRules";
 
 type AtlCounterDialogProps = {
   referenceValue: string;
-  onConfirm: (delta: string) => void;
+  onConfirm: (delta: string, counter: string) => void;
   onCancel: () => void;
 };
 
@@ -27,7 +27,7 @@ export function AtlCounterDialog({ referenceValue, onConfirm, onCancel }: AtlCou
       setError(result.error);
       return;
     }
-    onConfirm(formatNum(result.delta, 1));
+    onConfirm(formatNum(result.delta, 1), formatNum(result.counter, 1));
   };
 
   return (

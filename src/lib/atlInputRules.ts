@@ -2,11 +2,11 @@ import { formatNum, parseNum } from "@/lib/atlCalc";
 
 export const MAX_FLIGHT_COUNTER_DELTA = 5;
 
-export type CounterValidation = { ok: true; delta: number } | { ok: false; error: string };
+export type CounterValidation = { ok: true; delta: number; counter: number } | { ok: false; error: string };
 
 export function validateFlightCounter(newValue: string, reference: string): CounterValidation {
   const ref = parseNum(reference);
-  if (ref === null) return { ok: false, error: "Renseignez d'abord le total de la Case 3." };
+  if (ref === null) return { ok: false, error: "Le compteur de référence (Case 3) est manquant." };
   const next = parseNum(newValue);
   if (next === null) return { ok: false, error: "Saisissez le nouveau compteur avion." };
   if (next <= ref) {
@@ -19,7 +19,7 @@ export function validateFlightCounter(newValue: string, reference: string): Coun
       error: `La différence ne peut pas dépasser ${MAX_FLIGHT_COUNTER_DELTA} heures (écart calculé : ${formatNum(delta, 1)}).`,
     };
   }
-  return { ok: true, delta };
+  return { ok: true, delta, counter: next };
 }
 
 export function sanitizeLetters(value: string, max: number): string {

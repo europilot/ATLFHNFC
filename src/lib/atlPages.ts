@@ -31,6 +31,7 @@ export function createFlight(remainingFuel = ""): Flight {
     sic: "",
     takeoff: "",
     flightDecimal: "",
+    counterEnd: "",
     landings: "",
   };
 }

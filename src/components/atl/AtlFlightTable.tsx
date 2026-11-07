@@ -55,6 +55,10 @@ export function AtlFlightTable({ page, readOnly, onChange }: AtlSectionProps) {
     onChange({ flights: page.flights.filter((f) => f.id !== id) });
   };
 
+  const counterIndex = page.flights.findIndex((f) => f.id === counterFlightId);
+  const counterReference =
+    counterIndex <= 0 ? page.previousTotalTime : (page.flights[counterIndex - 1]?.counterEnd ?? "");
+
   return (
     <div>
       <table className="w-full table-fixed border-collapse">
@@ -298,12 +302,12 @@ export function AtlFlightTable({ page, readOnly, onChange }: AtlSectionProps) {
           })}
         </tbody>
       </table>
-      {counterFlightId && (
+      {counterFlightId && counterIndex >= 0 && (
         <AtlCounterDialog
-          referenceValue={page.previousTotalTime}
+          referenceValue={counterReference}
           onCancel={() => setCounterFlightId(null)}
-          onConfirm={(delta) => {
-            updateFlight(counterFlightId, { flightDecimal: delta });
+          onConfirm={(delta, counter) => {
+            updateFlight(counterFlightId, { flightDecimal: delta, counterEnd: counter });
             setCounterFlightId(null);
           }}
         />

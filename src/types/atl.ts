@@ -13,6 +13,7 @@ export type Flight = {
   sic: string;
   takeoff: string;
   flightDecimal: string;
+  counterEnd: string;
   landings: string;
 };
 
