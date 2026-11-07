@@ -1,5 +1,6 @@
 import { Plus, Trash2 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { AtlCounterDialog } from "@/components/atl/AtlCounterDialog";
 import { AtlInput, AtlOutput, CaseNo } from "@/components/atl/AtlCell";
 import { AtlSignature } from "@/components/atl/AtlSignature";
 import {
@@ -12,7 +13,13 @@ import {
   landingHHMM,
 } from "@/lib/atlCalc";
 import { createFlight } from "@/lib/atlPages";
-import { sanitizeAsked, sanitizeDecimal, sanitizeDigits, sanitizeLetters, sanitizeTime } from "@/lib/atlInputRules";
+import {
+  sanitizeAsked,
+  sanitizeDecimal,
+  sanitizeDigits,
+  sanitizeLetters,
+  sanitizeTime,
+} from "@/lib/atlInputRules";
 import type { AtlSectionProps, Flight } from "@/types/atl";
 
 const COLUMN_WIDTHS = [62, 56, 62, 62, 48, 48, 64, 34, 56, 56, 44, 48, 48, 64, 60, 60, 60, 60, 64, 60, 48, 32];
@@ -34,6 +41,8 @@ function Td({ caseNumber, children }: { caseNumber?: number; children?: ReactNod
 }
 
 export function AtlFlightTable({ page, readOnly, onChange }: AtlSectionProps) {
+  const [counterFlightId, setCounterFlightId] = useState<string | null>(null);
+
   const updateFlight = (id: string, patch: Partial<Flight>) => {
     onChange({ flights: page.flights.map((f) => (f.id === id ? { ...f, ...patch } : f)) });
   };
@@ -251,15 +260,15 @@ export function AtlFlightTable({ page, readOnly, onChange }: AtlSectionProps) {
                   <AtlOutput value={decimalHoursToHHMM(f.flightDecimal)} className="text-[11px]" />
                 </Td>
                 <Td caseNumber={19}>
-                  <AtlInput
-                    ariaLabel={`Vol ${index + 1} temps de vol décimal`}
-                    value={f.flightDecimal}
-                    sanitize={sanitizeDecimal}
-                    inputMode="decimal"
-                    placeholder="0,0"
-                    readOnly={readOnly}
-                    onChange={(v) => set({ flightDecimal: v })}
-                  />
+                  <button
+                    type="button"
+                    aria-label={`Vol ${index + 1} temps de vol décimal`}
+                    disabled={readOnly}
+                    onClick={() => setCounterFlightId(f.id)}
+                    className="flex h-full w-full items-center justify-center px-1 py-0.5 font-medium tabular-nums text-blue-700 transition-colors hover:bg-sky-50 disabled:cursor-default disabled:hover:bg-transparent"
+                  >
+                    {f.flightDecimal}
+                  </button>
                 </Td>
                 <Td caseNumber={20}>
                   <AtlInput
@@ -289,6 +298,16 @@ export function AtlFlightTable({ page, readOnly, onChange }: AtlSectionProps) {
           })}
         </tbody>
       </table>
+      {counterFlightId && (
+        <AtlCounterDialog
+          referenceValue={page.previousTotalTime}
+          onCancel={() => setCounterFlightId(null)}
+          onConfirm={(delta) => {
+            updateFlight(counterFlightId, { flightDecimal: delta });
+            setCounterFlightId(null);
+          }}
+        />
+      )}
       {!readOnly && (
         <div className="flex justify-start border-b border-black bg-white px-2 py-1.5 print:hidden">
           <button
